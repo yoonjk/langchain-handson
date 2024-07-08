@@ -10,3 +10,4 @@ pip install ibm_watsonx_ai
 pip install -qU langchain-ibm
 pip install pypdf
 pip install sentence-transformers
+pip install -U langchain-huggingface
