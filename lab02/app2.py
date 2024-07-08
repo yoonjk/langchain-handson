@@ -72,7 +72,8 @@ model = Model(
 ).to_langchain()  
 
 
-loader = PyPDFLoader("./data/LangChain.pdf")
+
+loader = PyPDFLoader("./data/showers.pdf")
 
 # OpenAI의 Text Embedding 을 이용하여 chunk의 문서들을 임베딩 벡터로 변환하고, 
 # Chroma Vector DB에 저장하고 인덱싱합니다. 
@@ -110,50 +111,8 @@ chain = RetrievalQA.from_chain_type(
 )
 
 # Answer based on the document
-res = chain.invoke("langchain에 대해 한글로 설명해줘")
-
-print(res["result"])
-
-loader = PyPDFLoader("./data/Chain-of-Thought-prompting.pdf")
-pages_new = loader.load_and_split(text_splitter)
-_ = vectordb.add_documents(pages_new)
-
-res = chain.invoke("what is chain-of-thought prompting?")
-print(res["result"])
-
-memory = ConversationBufferMemory(memory_key="chat_history",
-                                  return_messages=True)
-
-qa = ConversationalRetrievalChain.from_llm(
-  llm=llm_model, 
-  retriever=vectordb.as_retriever(), 
-  memory=memory)
-
-query = "What is the langchain about?"
-result = qa({"question": query})
-print(result)
-
-# RAG chain 생성
-from langchain.schema.runnable import RunnablePassthrough
-# pipe operator를 활용한 체인 생성
-prompt = PromptTemplate(
-  input_variables = ["question", "context"], 
-  template="You are an assistant for question-answering tasks. Use the following pieces of retrieved context to answer the question. If you don't know the answer, just say that you don't know. Use three sentences maximum and keep the answer concise.\nQuestion: {question} \nContext: {context} \nAnswer:"
-)
-
-rag_chain = (
-    {"context": retriever, "question": RunnablePassthrough()} 
-    | prompt 
-    | llm_model 
-)
-
-res = rag_chain.invoke(query)
-print(result)
-
-loader = PyPDFLoader("./data/showers.pdf")
-documents_new = loader.load_and_split(text_splitter)
-_ = vectordb.add_documents(documents_new)
 
 res = chain.invoke("이 소설의 제목은 뭐야?")
 
 print(res)
+
