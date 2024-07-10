@@ -89,7 +89,7 @@ llm_model = Model(
 )
 
 llm = WatsonxLLM(
-   model = llm_model
+    model = llm_model
 )
 
 template = """Answer the question based only on the following context:

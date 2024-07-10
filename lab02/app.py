@@ -102,6 +102,7 @@ llm_model = Model(
   project_id = project_id
 ).to_langchain()
 
+# 검색QA(질문 답변 체인)를 구축하여 RAG 작업을 자동화하세요.
 chain = RetrievalQA.from_chain_type(
   llm = llm_model,
   chain_type = "stuff",

@@ -140,7 +140,8 @@ params = {
     GenParams.MIN_NEW_TOKENS: 50,
     GenParams.MAX_NEW_TOKENS: 300
 }
-model = Model(
+
+llm_model = Model(
     model_id="google/flan-ul2",
     params=params,
     credentials=credentials,
@@ -151,7 +152,7 @@ model = Model(
 from langchain.chains import RetrievalQA 
 
 chain = RetrievalQA.from_chain_type(
-  llm=model,
+  llm=llm_model,
   chain_type="stuff",
   retriever = index.vectorstore.as_retriever(),
   input_key = "question"
