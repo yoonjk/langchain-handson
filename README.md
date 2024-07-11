@@ -15,6 +15,10 @@ pip install -U langchain-huggingface
 pip install tensorflow_hub
 pip install tensorflow_text
 pip install faiss-cpu
+# for langserve
+pip install fastapi uvicorn
+pip install langserve
+pip install sse_starlette
 ```
 
 임베딩 모델을 사용하여 문장이나 구절의 의미를 파악하는 텍스트 임베딩을 생성하면 검색 증강 생성 작업에 도움이 됩니다.
@@ -33,4 +37,8 @@ pip install faiss-cpu
 4. 가장 관련성이 높은 검색 결과를 프롬프트에 컨텍스트로 가져와 "다음 구절의 정보만 사용하여 다음 질문에 답하세요"와 같은 지침을 추가합니다.
 5. 결합된 프롬프트 텍스트(지시 사항 + 검색 결과 + 질문)를 기초 모델에 보냅니다.
 6. 기초 모델은 프롬프트의 문맥 정보를 사용하여 사실에 입각한 답을 생성합니다.
+
+[LangServe](lab08/README.md)
+
+
 
