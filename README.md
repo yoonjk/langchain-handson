@@ -10,7 +10,7 @@ pip install langchain
 pip install ibm_watsonx_ai 
 pip install -qU langchain-ibm
 pip install pypdf
-pip install sentence-transformers
+pip install sentence-transformers # HuggingfaceEmbeedings
 pip install -U langchain-huggingface
 pip install tensorflow_hub
 pip install tensorflow_text
@@ -37,7 +37,7 @@ pip install sse_starlette
 4. 가장 관련성이 높은 검색 결과를 프롬프트에 컨텍스트로 가져와 "다음 구절의 정보만 사용하여 다음 질문에 답하세요"와 같은 지침을 추가합니다.
 5. 결합된 프롬프트 텍스트(지시 사항 + 검색 결과 + 질문)를 기초 모델에 보냅니다.
 6. 기초 모델은 프롬프트의 문맥 정보를 사용하여 사실에 입각한 답을 생성합니다.
-
+[chroma](lab01/README.md)
 [LangServe](lab08/README.md)
 
 

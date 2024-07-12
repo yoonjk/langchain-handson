@@ -28,24 +28,14 @@ project_id = os.getenv("PROJECT_ID", None)
 
 print(credentials)
 
-params = {
-    GenParams.DECODING_METHOD: "sample",
-    GenParams.TEMPERATURE: 0.2,
-    GenParams.TOP_P: 1,
-    GenParams.TOP_K: 100,
-    GenParams.MIN_NEW_TOKENS: 50,
-    GenParams.MAX_NEW_TOKENS: 300
-}
-model = Model(
-    model_id=ModelTypes.FLAN_T5_XXL,
-    params=params,
-    credentials=credentials,
-    project_id=project_id
-).to_langchain()  
-
+# Step 1 : Loading document
 loader = PyPDFLoader("./data/LangChain.pdf")
+
+# Step 2 : Splitter document to texts
 text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
 documents = loader.load_and_split(text_splitter)
+
+# Step 3 : Embedding with WatsonxEmbeddings
 embeddings = WatsonxEmbeddings(
     model_id=EmbeddingTypes.IBM_SLATE_30M_ENG.value,
     url=credentials["url"],
@@ -57,18 +47,7 @@ vectordb = Chroma.from_documents(
   embedding=embeddings
 )
 
-
-
-# Step 5. Set up a retriever
-# 벡터 저장소를 리트리버로 설정하겠습니다. 
-# 벡터 저장소에서 검색된 정보는 제너레이티브 모델에서 사용할 수 있는 추가 컨텍스트 또는 지식으로 사용됩니다.
-
-retriever = vectordb.as_retriever()
-
-
-# Step 6. Generate a response with a generative model
-
-
+# Step 4. Define the model 
 parameters = {
     GenParams.DECODING_METHOD: 'greedy',
     GenParams.TEMPERATURE: 2,
@@ -103,6 +82,12 @@ prompt = ChatPromptTemplate.from_template(template)
 def format_docs(docs):
     return "\n\n".join([d.page_content for d in documents])
   
+# Step 5 : Retriever
+# 벡터 저장소를 리트리버로 설정하겠습니다. 
+# 벡터 저장소에서 검색된 정보는 제너레이티브 모델에서 사용할 수 있는 추가 컨텍스트 또는 지식으로 사용됩니다.
+
+retriever = vectordb.as_retriever()
+
 chain = (
     {"context": retriever | format_docs, "question": RunnablePassthrough()}
     | prompt

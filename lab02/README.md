@@ -1,0 +1,1 @@
+## Embedding document to store chroma with HuggingFaceEmbeddings

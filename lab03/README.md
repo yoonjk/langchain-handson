@@ -1,4 +1,5 @@
-# installations
+## Embedding document to store chroma with WatsonxEmbedding
+## installations
 ```bash
 %pip install langchain
 %pip install langchain_chroma

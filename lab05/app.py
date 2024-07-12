@@ -31,12 +31,15 @@ url = "https://raw.githubusercontent.com/IBM/watson-machine-learning-samples/mas
 if not os.path.isfile(filename):
   wget.download(url, out=filename)
 
-
+# Step 1 Loading document
 loader = TextLoader(filename)
 documents = loader.load() 
+
+# Step 2 : Spliter
 text_splitter = CharacterTextSplitter(chunk_size = 1000, chunk_overlap=0)
 texts = text_splitter.split_documents(documents)
 
+# Step 3 : Embedding with watsonx
 embeddings = WatsonxEmbeddings(
   model_id = EmbeddingTypes.IBM_SLATE_30M_ENG.value,
   url = credentials["url"],

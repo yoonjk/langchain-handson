@@ -25,36 +25,28 @@ credentials = {
 
 project_id = os.getenv("PROJECT_ID", None)
 
-params = {
-  GenParams.DECODING_METHOD : "sample",
-  GenParams.TEMPERATURE : 0.2,
-  GenParams.TOP_P: 1,
-  GenParams.TOP_K: 25,
-  GenParams.MAX_NEW_TOKENS: 20,
-  GenParams.MIN_NEW_TOKENS: 1,
-  GenParams.REPETITION_PENALTY: 1.0,
-}
+# Step 1 : Loading document
+loader = PyPDFLoader("./data/LangChain.pdf")
 
-llm_model = Model(
-  model_id = "google/flan-ul2",
-  params = params,
-  credentials = credentials,
-  project_id = project_id
+# OpenAI의 Text Embedding 을 이용하여 chunk의 문서들을 임베딩 벡터로 변환하고, 
+# Chroma Vector DB에 저장하고 인덱싱합니다. 
+# 이때 메모리에만 남겨두는 것이 아니라 directory에 영구저장(persist)하여 추후 재사용할 수 있도록 합니다. 
+
+# Step 2 : Split document to texts
+text_splitter = RecursiveCharacterTextSplitter(chunk_size= 1000, chunk_overlap=200)
+texts = loader.load_and_split(text_splitter)
+
+print("page_content:", texts[0].page_content)
+print("meta:", texts[0].metadata)
+
+# Step 3 : embedding documents with HuggingFaceEmbeddings
+vectordb = Chroma.from_documents(
+  documents=texts, # Documents
+  embedding=HuggingFaceEmbeddings(),
+  persist_directory='db'
 )
 
-print("Done initializing LLM.")
-
-# Predict with the model
-countries = ["France", "Japan", "Australia"]
-
-try:
-  for country in countries:
-    question = f"What is the capital of {country}"
-    res = llm_model.generate_text(question)
-    print(f"The capital of {country} is {res.capitalize()}")
-except Exception as e:
-  print(e) 
-  
+# Step 4 : Define the model
 # Initialize watsonx google/flan-ul2 model
 params = {
     GenParams.DECODING_METHOD: "sample",
@@ -64,36 +56,6 @@ params = {
     GenParams.MIN_NEW_TOKENS: 50,
     GenParams.MAX_NEW_TOKENS: 300
 }
-model = Model(
-    model_id=ModelTypes.FLAN_T5_XXL,
-    params=params,
-    credentials=credentials,
-    project_id=project_id
-).to_langchain()  
-
-
-loader = PyPDFLoader("./data/LangChain.pdf")
-
-# OpenAI의 Text Embedding 을 이용하여 chunk의 문서들을 임베딩 벡터로 변환하고, 
-# Chroma Vector DB에 저장하고 인덱싱합니다. 
-# 이때 메모리에만 남겨두는 것이 아니라 directory에 영구저장(persist)하여 추후 재사용할 수 있도록 합니다. 
-
-text_splitter = RecursiveCharacterTextSplitter(chunk_size= 1000, chunk_overlap=200)
-pages = loader.load_and_split(text_splitter)
-
-print("page_content:", pages[0].page_content)
-print("meta:", pages[0].metadata)
-
-vectordb = Chroma.from_documents(
-  documents=pages, # Documents
-  embedding=HuggingFaceEmbeddings(),
-  persist_directory='db'
-)
-
-retriever = vectordb.as_retriever(
-  search_type = "similarity", 
-  search_kwagrs = {"k": 3}
-)
 
 llm_model = Model(
   model_id = 'meta-llama/llama-3-70b-instruct',
@@ -102,7 +64,13 @@ llm_model = Model(
   project_id = project_id
 ).to_langchain()
 
+# Step 5 : Retriever
 # 검색QA(질문 답변 체인)를 구축하여 RAG 작업을 자동화하세요.
+retriever = vectordb.as_retriever(
+  search_type = "similarity", 
+  search_kwagrs = {"k": 3}
+)
+
 chain = RetrievalQA.from_chain_type(
   llm = llm_model,
   chain_type = "stuff",

@@ -63,14 +63,12 @@ text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=20
 documents = loader.load_and_split(text_splitter)
 text_chunks=[content.page_content for content in documents]
 
-# Step 3 : 문서 벡터화(Embedding)
+# Step 3 : 문서 벡터화(Embedding) with TensorflowHubEmbeddings
 url = "https://tfhub.dev/google/universal-sentence-encoder-multilingual/3"
 embeddings  = TensorflowHubEmbeddings(model_url=url)
 
 vectorstore = FAISS.from_texts(texts=text_chunks, embedding=embeddings)
-memory = ConversationBufferMemory(
-    memory_key="chat_history",
-    return_messages=True)
+
 
 
 # Step 4: LLM 모델 정의
@@ -100,6 +98,11 @@ llama_model = Model(
 llm=llama_model.to_langchain()
 
 # Step 5: 관련 문서와 질문을 LLM에 던져
+# 대화 내역에 대한 기억 (Chat History Memory) + Retrieval' 을 동시에 고려하여 사용자 질의에 대한 답변을 생성
+memory = ConversationBufferMemory(
+    memory_key="chat_history",
+    return_messages=True)
+
 qa = ConversationalRetrievalChain.from_llm(
     llm=llm, 
     retriever=vectorstore.as_retriever(), 
