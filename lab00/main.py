@@ -1,6 +1,7 @@
-from langchain.prompts import HumanMessagePromptTemplate, ChatPromptTemplate
+from langchain.prompts import HumanMessagePromptTemplate, ChatPromptTemplate, MessagesPlaceholder
 
 from langchain.chains import LLMChain
+from langchain.memory import ConversationBufferMemory, FileChatMessageHistory
 from ibm_watson_machine_learning.foundation_models.utils.enums import DecodingMethods, ModelTypes
 from ibm_watson_machine_learning.foundation_models.model import Model 
 from ibm_watson_machine_learning.metanames import GenTextParamsMetaNames as GenParams 
@@ -19,9 +20,14 @@ print(credentials)
 
 project_id = os.getenv("PROJECT_ID", None)
 
+memory = ConversationBufferMemory(
+  chat_memory = FileChatMessageHistory("messages.json"),
+  memory_key="messages", return_messages=True
+)
 prompt = ChatPromptTemplate(
-  input_variables=["content"],
+  input_variables=["content", "messages"],
   messages = [
+    MessagesPlaceholder(variable_name = "messages"),
     HumanMessagePromptTemplate.from_template("{content}")
   ]
 )
@@ -29,11 +35,11 @@ prompt = ChatPromptTemplate(
 params = {
   GenParams.DECODING_METHOD : DecodingMethods.GREEDY,
   GenParams.MIN_NEW_TOKENS: 1,
-  GenParams.MAX_NEW_TOKENS: 100
+  GenParams.MAX_NEW_TOKENS: 30
 }
 
 model = Model(
-  model_id = ModelTypes.LLAMA_2_70B_CHAT.value, 
+  model_id = ModelTypes.FLAN_T5_XXL.value,
   credentials = credentials, 
   params = params,
   project_id = project_id
@@ -42,7 +48,7 @@ model = Model(
 
 llm = WatsonxLLM(model = model)
 
-chain = LLMChain(llm = llm, prompt = prompt)
+chain = LLMChain(llm = llm, prompt = prompt, memory = memory)
 
 while True: 
   content = input(">> ")
