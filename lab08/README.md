@@ -18,3 +18,7 @@ langserve는 OpenAI에서 개발한 오픈소스 언어 모델 서빙 라이브�
 - 확장성: 대규모 서비스에 적합하도록 설계되어 있어, 수백 개 이상의 요청을 처리할 수 있는 확장성을 지원합니다.
 
 
+## Downgrade pydantic module
+```bash
+pip install pydantic==1.10.13
+```

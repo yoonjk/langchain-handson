@@ -18,6 +18,6 @@ app = FastAPI(
 
 add_routes(app, 
            retriever,
-           path="/openai",s
+           path="/openai",
            )
 
