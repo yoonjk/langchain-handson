@@ -1,16 +1,17 @@
 import os 
 from dotenv import load_dotenv 
+
+from langchain_community.document_loaders import TextLoader
+from langchain_community.vectorstores import Chroma
+
 from langchain_huggingface import HuggingFaceEmbeddings
+from langchain.chains import RetrievalQA 
 from langchain.text_splitter import CharacterTextSplitter
-from langchain.chains import RetrievalQA
 
-from langchain_community.document_loaders import TextLoader 
-from langchain_community.vectorstores import Chroma 
-
-from ibm_watson_machine_learning.metanames import GenTextParamsMetaNames as GenParams 
-from ibm_watson_machine_learning.foundation_models.utils.enums import ModelTypes 
-from ibm_watson_machine_learning.foundation_models.extensions.langchain import WatsonxLLM
 from ibm_watson_machine_learning.foundation_models.model import Model 
+from ibm_watson_machine_learning.metanames import GenTextParamsMetaNames as GenParams 
+from ibm_watson_machine_learning.foundation_models.extensions.langchain import WatsonxLLM 
+from ibm_watson_machine_learning.foundation_models.utils.enums import ModelTypes 
 
 load_dotenv() 
 
@@ -24,25 +25,24 @@ project_id = os.getenv("PROJECT_ID", None)
 print(credentials)
 
 loader = TextLoader("./data/facts.txt")
-
 text_splitter = CharacterTextSplitter(
-  separator="\n",
-  chunk_size = 200,
-  chunk_overlap = 0
+  separator="\n", 
+  chunk_size=200,
+  chunk_overlap=0
 )
 
-docs = loader.load_and_split(
+documents = loader.load_and_split(
   text_splitter=text_splitter
 )
 
-
-embedding = HuggingFaceEmbeddings()
+embeddings = HuggingFaceEmbeddings() 
 
 db = Chroma.from_documents(
-  documents=docs, 
-  embedding=embedding,
+  documents=documents,
+  embedding=embeddings, 
   persist_directory="db"
 )
+
 
 params = {
     GenParams.DECODING_METHOD: 'greedy',
@@ -60,14 +60,13 @@ model = Model(
 llm = WatsonxLLM(
     model = model 
 )
-  
+
 qa = RetrievalQA.from_chain_type(
-    llm = llm, 
-    chain_type = "stuff",
-    retriever = db.as_retriever(),
-    return_source_documents = True
+  llm = llm, 
+  chain_type = "stuff",
+  retriever = db.as_retriever()
 )
-  
+
 result = qa.invoke("What is an interesting fact about the english language?")
   
 print(result['result'])
