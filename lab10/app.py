@@ -3,12 +3,15 @@ from langchain.prompts import (
   HumanMessagePromptTemplate,
   MessagesPlaceholder
 )
+from langchain.tools.render import render_text_description_and_args
 from langchain_community.utilities.sql_database import SQLDatabase
 from langchain_community.agent_toolkits import create_sql_agent
+from langchain.agents.output_parsers import JSONAgentOutputParser
 from langchain_community.utilities.tavily_search import TavilySearchAPIWrapper
 from langchain import hub
 from langchain.tools import tool
 from langchain.agents import AgentExecutor, load_tools, Tool, create_openai_tools_agent
+from langchain.agents.format_scratchpad import format_log_to_str
 from langchain.tools.tavily_search import TavilySearchResults
 from langchain.utilities.tavily_search import TavilySearchAPIWrapper
 from langchain.memory import ConversationBufferMemory
@@ -16,6 +19,7 @@ from langchain.prompts import ChatPromptTemplate
 from langchain_core.callbacks import StdOutCallbackHandler
 from ibm_watson_machine_learning.metanames import GenTextParamsMetaNames as GenParams 
 from ibm_watson_machine_learning.foundation_models.utils.enums import ModelTypes 
+from langchain_core.runnables import RunnablePassthrough
 
 from langchain_ibm import WatsonxLLM
 from langchain_huggingface import HuggingFaceEmbeddings
@@ -25,8 +29,9 @@ from dotenv import load_dotenv
 import os 
 from datetime import datetime
 
-
+@tool
 def get_function_tools():
+  """get_function_tools search."""
   search = TavilySearchAPIWrapper()
   tavily_tool = TavilySearchResults(api_wrapper=search)
 
@@ -79,37 +84,42 @@ def add(a: int, b: int) -> int:
 
 
 
-def acgent_action():
+def agent_action():
   llm = create_llm()
-  template = """
-  Question: {question}
-  """
-  handler = StdOutCallbackHandler()
-  config = {
-    'callbacks' : [handler]
-  }
-  tools = [get_todays_date]
-  # prompt = ChatPromptTemplate.from_template(template)
+  tools = [get_function_tools, get_todays_date]
+  human_prompt = """{input}
+    {agent_scratchpad}
+    (reminder to always respond in a JSON blob) """
+
   prompt = ChatPromptTemplate.from_messages(
     [
 
-        ("user", "{input}"),
-       
+        MessagesPlaceholder("chat_history", optional=True),
+        ("human", human_prompt),
     ]
   )
+  prompt = prompt.partial(
+    tools=render_text_description_and_args(list(tools)),
+    tool_names=", ".join([t.name for t in tools]),
+  )
+  memory = ConversationBufferMemory()
 
-  agent =  prompt | llm
-  #agent = prompt | llm
+  chain = ( RunnablePassthrough.assign(
+        agent_scratchpad=lambda x: format_log_to_str(x["intermediate_steps"]),
+        chat_history=lambda x: memory.chat_memory.messages,
+    )
+    | prompt | llm | JSONAgentOutputParser()
 
-  # memory = ConversationBufferMemory()
-  # agent_exe
-  # cutor = AgentExecutor(agent=agent, tools=tools, verbose=True, handle_parsing_errors=True, memory=memory)
-  result = agent.invoke({"input": "테슬라  주인은 누구인지 자세히 알려줘?"}) 
-  return result
+  )
 
-result = acgent_action()
-print(result)
+  agent_executor = AgentExecutor(agent=chain, tools=tools, handle_parsing_errors=True, verbose=True, memory=memory)
+  #result = agent.invoke({"input": "테슬라  주인은 누구인지 자세히 알려줘?"}) 
+  # result = agent_executor.invoke({"input": "테슬라  주인은 누구인지 자세히 알려줘?"})
+  return agent_executor
 
+action = agent_action()
+print( action.invoke({"input": "테슬라  주인은 누구인지 자세히 알려줘?"}))
+action.invoke({"input": "What is today's date?"})
 
 
 
