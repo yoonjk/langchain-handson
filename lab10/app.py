@@ -10,7 +10,7 @@ from langchain.agents.output_parsers import JSONAgentOutputParser
 from langchain_community.utilities.tavily_search import TavilySearchAPIWrapper
 from langchain import hub
 from langchain.tools import tool
-from langchain.agents import AgentExecutor, load_tools, Tool, create_openai_tools_agent
+from langchain.agents import AgentExecutor, load_tools, Tool
 from langchain.agents.format_scratchpad import format_log_to_str
 from langchain.tools.tavily_search import TavilySearchResults
 from langchain.utilities.tavily_search import TavilySearchAPIWrapper
