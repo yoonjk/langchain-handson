@@ -15,6 +15,7 @@ from langchain.tools import tool
 from langchain_community.tools.tavily_search import TavilySearchResults
 from langchain_community.agent_toolkits.load_tools import load_tools
 
+from langchain_google_community import GoogleSearchAPIWrapper
 
 # machine learning library
 from ibm_watson_machine_learning.foundation_models.utils.enums import ModelTypes, DecodingMethods
@@ -76,9 +77,16 @@ def get_astronomy_image():
 
 tavily_tool = TavilySearchResults()
 
+search = GoogleSearchAPIWrapper()
+
+@tool
+def top5_results(query):
+    """ Get google search"""
+    return search.results(query, 3)
+
 # Define tool
-tools = [get_todays_date, add, multiply, get_astronomy_image, divide, tavily_tool]
-tools.extend(load_tools(['wikipedia']))
+tools = [get_todays_date, add, multiply, get_astronomy_image, divide, top5_results]
+# tools.extend(load_tools(['wikipedia']))
 
 
 # Choose the LLM that will drive the agent
@@ -157,6 +165,6 @@ chain = ( RunnablePassthrough.assign(
 # Create an agent executor by passing in the agent and tools
 agent_executor = AgentExecutor(agent=chain, tools=tools, verbose=True, handle_parsing_errors=True, memory=memory)
 
-result = agent_executor.invoke({"input": "What is dbama's first name?"})
+result = agent_executor.invoke({"input": "What is the capital of canada?"})
 
 print(result['output'])
