@@ -47,11 +47,13 @@ def top5_results(query):
 
 create_tavily_search = TavilySearchResults()
   
-def load_tools():
+def load_tools(extool):
 	# Define tool
 	# 1-3. tools 리스트에 도구 목록을 추가
-
-  tools = [dummy, create_tavily_search]
+  if extool:
+    tools = [dummy, extool]
+  else:  
+    tools = [dummy]
   # tools.extend(load_tools(['wikipedia']))
   
   return tools 

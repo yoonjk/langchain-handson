@@ -26,7 +26,9 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.agent_toolkits.load_tools import load_tools
 from langchain_community.vectorstores import FAISS 
 from langchain_community.document_loaders import PyPDFLoader
+from langchain.tools import BaseTool
 from langchain_core.tools import Tool
+from langchain.tools import tool
 # Load API_KEY
 from load_env import (
 	credentials,
@@ -68,16 +70,15 @@ retriever_tool = create_retriever_tool(
  description="2023년 12월 AI 관련 정보를 PDF 문서에서 검색합니다. '2023년 12월 AI 산업동향' 과 관련된 질문은 이 도구를 사용해야 합니다!"
 )
 
-
-tools = load_tools()
-tools = tools.extend(retriever_tool)
-
 llm = create_llm(credentials, project_id)
 qa = RetrievalQA.from_chain_type(
   llm = llm,
   chain_type = "stuff",
   retriever = vectordb.as_retriever()
 )
+
+tools = load_tools(retriever_tool)
+#tools = tools.append(get_query)
 
 
 
