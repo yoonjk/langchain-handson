@@ -42,7 +42,7 @@ from prompt import (
 )
 from tools import (
   load_tools,
-  create_tools_info 
+  create_tools_info
 )
 
 from agent import (
@@ -60,14 +60,14 @@ documents = loader.load_and_split(text_splitter)
 embedding = HuggingFaceEmbeddings()
 vectordb = FAISS.from_documents(
 	documents=documents,
- embedding=embedding
+  embedding=embedding
 )
 
 retriever = vectordb.as_retriever()
 retriever_tool = create_retriever_tool(
 	retriever, 
- name = "pdf_search",
- description="2023년 12월 AI 관련 정보를 PDF 문서에서 검색합니다. '2023년 12월 AI 산업동향' 과 관련된 질문은 이 도구를 사용해야 합니다!"
+  name = "pdf_search",
+  description="2023년 12월 AI 관련 정보를 PDF 문서에서 검색합니다. '2023년 12월 AI 산업동향' 과 관련된 질문은 이 도구를 사용해야 합니다!"
 )
 
 llm = create_llm(credentials, project_id)
@@ -80,6 +80,7 @@ qa = RetrievalQA.from_chain_type(
 tools = load_tools(retriever_tool)
 #tools = tools.append(get_query)
 
+print([tool for tool in tools])
 
 
 prompt = create_prompt()
