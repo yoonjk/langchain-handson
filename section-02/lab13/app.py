@@ -10,6 +10,8 @@ from load_doc import (
 )
 from langchain_huggingface import HuggingFaceEmbeddings
 
+
+
 embeddings = HuggingFaceEmbeddings()
 llm = create_llm(project_id=project_id, credentials=credentials)
 dbname = "faiss_index_react"

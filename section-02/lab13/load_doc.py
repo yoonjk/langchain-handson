@@ -23,6 +23,7 @@ def load_and_split(file_name: str):
 
 def embedding_vector(docs, embedding, dbname):
   """embedding docs to vectordb"""
+  FAISS.
   vectordb = FAISS.from_documents(documents=docs, embedding=embedding)
   vectordb.save_local(dbname)
 
