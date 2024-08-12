@@ -1,16 +1,16 @@
 
-from ibm_watson_machine_learning.metanames import GenTextParamsMetaNames as GenParams 
+from ibm_watson_machine_learning.metanames import GenTextParamsMetaNames as GenParams
 from langchain_ibm import WatsonxLLM
 
 def create_llm(credentials, project_id):
-  # 2. LLM 을 정의합니다
+    # 2. LLM 을 정의합니다
 	params = {
 		GenParams.DECODING_METHOD : "greedy", 
 		GenParams.MIN_NEW_TOKENS: 1,
 		GenParams.MAX_NEW_TOKENS: 500,
-		GenParams.STOP_SEQUENCES : ['\nObservation', '\n\n']
+		GenParams.STOP_SEQUENCES : ['\n\n']
 	}
-
+    
 	llm = WatsonxLLM(
 		model_id = 'meta-llama/llama-3-70b-instruct',
 		apikey = credentials['apikey'],
@@ -20,3 +20,4 @@ def create_llm(credentials, project_id):
 	)
  
 	return llm 
+

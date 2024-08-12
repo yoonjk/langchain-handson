@@ -3,6 +3,8 @@ from load_env import (
   project_id
 )
 
+import os 
+
 from llm_model import create_llm
 
 from langchain_community.document_loaders import PyPDFLoader
@@ -15,21 +17,21 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
 
-LANGCHAIN_API_KEY = "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"
-LANGCHAIN_PROJECT = "my-first"
-LANGCHAIN_ENDPOINT = "https://api.smith.langchain.com"
-LANGCHAIN_TRACING_V2 = True
+LANGCHAIN_API_KEY = os.getenv("LANGCHAIN_API_KEY")
+LANGCHAIN_PROJECT = os.getenv("LANGCHAIN_PROJECT")
+LANGCHAIN_ENDPOINT = os.getenv("LANGCHAIN_ENDPOINT")
+LANGCHAIN_TRACING_V2 = os.getenv("LANGCHAIN_TRACING_V2")
 
 def load_and_splitter(pdf_file_path):
   loader = PyPDFLoader(pdf_file_path)
   
   text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200, separators=["\n"])
-  spliter_docs = loader.load_and_split(text_splitter=text_splitter)
+  splitter_docs = loader.load_and_split(text_splitter=text_splitter)
 
-  return spliter_docs
+  return splitter_docs
 
 def summarize_pdf(docs, llm):
-  chain = load_summarize_chain(llm = llm, chain_type="map_reduce")
+  chain = load_summarize_chain(llm = llm, chain_type="stuff")
   
   summary = chain.invoke(docs)
   
@@ -37,7 +39,7 @@ def summarize_pdf(docs, llm):
 
 def embeddings_retriever(docs, embeddings):
   """vectore store embedding"""
-  retriever = FAISS.from_documents(documents=docs, embedding=embeddings)
+  retriever = FAISS.from_documents(documents=docs, embedding = embeddings)
   
   return retriever.as_retriever()
 
@@ -61,7 +63,7 @@ def create_chain(llm, retriever, prompt):
 llm = create_llm(credentials=credentials, project_id=project_id)
 docs = load_and_splitter("./data/LangChain.pdf")
 summarize = summarize_pdf(docs, llm)
-print(summarize['output_text'])
+print(summarize)
 
 prompt_template = """
 {context}

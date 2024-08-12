@@ -3,6 +3,7 @@ langchain handson
 
 ```bash
 pip install ibm_watson_machine_learning python_dotenv  
+pip install python-dotenv
 pip install langchain_community  
 pip install wget 
 pip install chroma
