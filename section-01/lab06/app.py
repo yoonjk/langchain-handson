@@ -1,6 +1,7 @@
 from langchain_community.document_loaders import WikipediaLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.embeddings import HuggingFaceBgeEmbeddings
+from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain_community.vectorstores import Chroma
 from langchain_community.retrievers import BM25Retriever
@@ -16,6 +17,13 @@ from utils import (
 
 
 from llm_model import create_llm
+from rag import (
+    format_docs
+)
+from chain import (
+    create_chain,
+    create_prompt_template
+)
 
 print_dash(125, '-')
 
@@ -47,6 +55,8 @@ embedding_function = HuggingFaceBgeEmbeddings(
     model_kwargs = model_kwargs,
     encode_kwargs = encode_kwargs
 )
+
+embeddings = HuggingFaceEmbeddings()
 
 query = "Who is elon musk's father?"
 
@@ -148,3 +158,19 @@ print_dash(125, '-')
 print("BM25 Retriever get_relevant_documents")
 matched_docs = bm25_retriever.invoke(query)
 print(matched_docs)
+llm = create_llm(credentials=credentials, project_id=project_id)
+
+prompt_template = """
+{context}
+question : {question}
+"""
+prompt = create_prompt_template(prompt_template)
+
+retriever = db.as_retriever(search_type='mmr', search_kwargs={"k": 1})
+retriever = db.as_retriever()
+chain = create_chain(retriever=retriever, llm = llm, prompt=prompt, format_docs=format_docs)
+
+result = chain.invoke(query.join('. You answer the korean language.'))
+print_dash(count=125)
+print(result)
+
